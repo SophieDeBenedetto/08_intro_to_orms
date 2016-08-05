@@ -40,20 +40,34 @@ class Tweet
 
   def save
     # make a call to the database to create a row with a message and a username value
-    sql = <<-SQL
-    INSERT INTO tweets (username, message)
-    VALUES (?, ?);
-    SQL
-    DB[:conn].execute(sql,username, message)
-    # find the row that was just inserted and set the id from that row to this tweets id
-    sql = <<-SQL
-    SELECT id FROM tweets
-    ORDER BY id DESC
-    LIMIT 1;
-    SQL
-    results = DB[:conn].execute(sql)
-    self.id = results.first['id']
+    if self.id
+      update
+    else
+      sql = <<-SQL
+      INSERT INTO tweets (username, message)
+      VALUES (?, ?);
+      SQL
+      DB[:conn].execute(sql,username, message)
+      # find the row that was just inserted and set the id from that row to this tweets id
+      sql = <<-SQL
+      SELECT id FROM tweets
+      ORDER BY id DESC
+      LIMIT 1;
+      SQL
+      results = DB[:conn].execute(sql)
+      self.id = results.first['id']
+    end
     self
+  end
+
+  def update
+    sql = <<-SQL
+    UPDATE tweets
+    SET username=?, message = ?
+    WHERE id = ?;
+    SQL
+
+    DB[:conn].execute(sql, username, message, id )
   end
 
 end
